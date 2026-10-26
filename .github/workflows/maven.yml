@@ -34,6 +34,9 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
+
+    env:
+      HAS_SONAR_TOKEN: ${{ secrets.SONAR_TOKEN != '' }}
     
     steps:
       - uses: actions/checkout@v4
@@ -52,7 +55,8 @@ jobs:
           SKIP_TESTCONTAINER_TESTS: true  # Do not run TestContainer Tests in Windows Matrix Build.
         run: mvn -U -B test verify
       - name: Linux-specific setup and SonarCloud analysis
-        if: matrix.os == 'ubuntu-latest'
+        # Skipped when SONAR_TOKEN is not configured (e.g. forks); build and tests above still run.
+        if: matrix.os == 'ubuntu-latest' && env.HAS_SONAR_TOKEN == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
